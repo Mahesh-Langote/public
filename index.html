@@ -203,15 +203,23 @@
             display: inline-flex;
             align-items: center;
             gap: 4px;
-        }
-
-        .view-btn {
+        }        .view-btn {
             background: #4338ca;
             color: white;
         }
 
         .view-btn:hover {
             background: #3730a3;
+            transform: scale(1.05);
+        }
+
+        .preview-btn {
+            background: #7c3aed;
+            color: white;
+        }
+
+        .preview-btn:hover {
+            background: #6d28d9;
             transform: scale(1.05);
         }
 
@@ -515,13 +523,18 @@
             
             const actions = document.createElement('div');
             actions.className = 'actions';
-            
-            if (file.type === 'file') {
+              if (file.type === 'file') {
                 const viewBtn = document.createElement('a');
                 viewBtn.className = 'action-btn view-btn';
                 viewBtn.href = file.url;
                 viewBtn.target = '_blank';
                 viewBtn.innerHTML = '👁️ View';
+                
+                const previewBtn = document.createElement('a');
+                previewBtn.className = 'action-btn preview-btn';
+                previewBtn.href = file.rawUrl;
+                previewBtn.target = '_blank';
+                previewBtn.innerHTML = '🔍 Preview';
                 
                 const copyBtn = document.createElement('button');
                 copyBtn.className = 'action-btn copy-btn';
@@ -535,6 +548,7 @@
                 downloadBtn.innerHTML = '⬇️ Download';
                 
                 actions.appendChild(viewBtn);
+                actions.appendChild(previewBtn);
                 actions.appendChild(copyBtn);
                 actions.appendChild(downloadBtn);
             }
