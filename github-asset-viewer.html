@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Asset Viewer - Mahesh-Langote/public</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .header h1 {
+            color: #2d3748;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .header p {
+            color: #4a5568;
+            font-size: 1.1rem;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .repo-info {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .repo-link {
+            background: #4338ca;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .repo-link:hover {
+            background: #3730a3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(67, 56, 202, 0.4);
+        }
+
+        .refresh-btn {
+            background: #059669;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .refresh-btn:hover {
+            background: #047857;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4);
+        }
+
+        .content {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #4a5568;
+            font-size: 1.1rem;
+        }
+
+        .spinner {
+            border: 4px solid #e2e8f0;
+            border-top: 4px solid #4338ca;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .directory-tree {
+            margin-top: 20px;
+        }
+
+        .tree-item {
+            margin: 8px 0;
+            padding: 12px 16px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .tree-item:hover {
+            background: #f7fafc;
+            border-left-color: #4338ca;
+            transform: translateX(4px);
+        }
+
+        .folder {
+            background: linear-gradient(135deg, #ebf8ff 0%, #bee3f8 100%);
+            border-left-color: #3182ce;
+        }
+
+        .file {
+            background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%);
+            border-left-color: #38a169;
+        }
+
+        .tree-item-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .tree-item-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .icon {
+            font-size: 1.2rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .file-name {
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .file-size {
+            font-size: 0.9rem;
+            color: #718096;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 4px 8px;
+            border-radius: 12px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .view-btn {
+            background: #4338ca;
+            color: white;
+        }
+
+        .view-btn:hover {
+            background: #3730a3;
+            transform: scale(1.05);
+        }
+
+        .copy-btn {
+            background: #059669;
+            color: white;
+        }
+
+        .copy-btn:hover {
+            background: #047857;
+            transform: scale(1.05);
+        }
+
+        .download-btn {
+            background: #dc2626;
+            color: white;
+        }
+
+        .download-btn:hover {
+            background: #b91c1c;
+            transform: scale(1.05);
+        }
+
+        .children {
+            margin-left: 30px;
+            margin-top: 10px;
+            border-left: 2px dashed #e2e8f0;
+            padding-left: 20px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #718096;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: #4a5568;
+        }
+
+        .search-container {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px 50px 15px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 50px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #4338ca;
+            box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #718096;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            border-left: 4px solid #f56565;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        .stat-label {
+            color: #718096;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #48bb78;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 GitHub Asset Viewer</h1>
+            <p>Dynamic repository explorer for <strong>Mahesh-Langote/public</strong></p>
+            <div class="repo-info">
+                <a href="https://github.com/Mahesh-Langote/public" target="_blank" class="repo-link">
+                    <span>📂</span> View Repository
+                </a>
+                <button class="refresh-btn" onclick="loadRepository()">
+                    <span>🔄</span> Refresh
+                </button>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="Search files and folders..." id="searchInput">
+                <div class="search-icon">🔍</div>
+            </div>
+
+            <div class="stats" id="stats" style="display: none;">
+                <div class="stat-card">
+                    <div class="stat-number" id="fileCount">0</div>
+                    <div class="stat-label">Files</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="folderCount">0</div>
+                    <div class="stat-label">Folders</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalSize">0 KB</div>
+                    <div class="stat-label">Total Size</div>
+                </div>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                Loading repository contents...
+            </div>
+
+            <div class="directory-tree" id="directoryTree" style="display: none;"></div>
+
+            <div class="empty-state" id="emptyState" style="display: none;">
+                <h3>📁 Repository is Empty</h3>
+                <p>Upload some files to your GitHub repository to see them here!</p>
+                <p>Once you add files, click the refresh button to see them.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const GITHUB_API_BASE = 'https://api.github.com';
+        const REPO_OWNER = 'Mahesh-Langote';
+        const REPO_NAME = 'public';
+        const RAW_BASE_URL = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main`;
+
+        let allFiles = [];
+        let stats = { files: 0, folders: 0, totalSize: 0 };
+
+        // Load repository on page load
+        document.addEventListener('DOMContentLoaded', loadRepository);
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            filterFiles(searchTerm);
+        });
+
+        async function loadRepository() {
+            showLoading();
+            try {
+                const response = await fetch(`${GITHUB_API_BASE}/repos/${REPO_OWNER}/${REPO_NAME}/contents`);
+                
+                if (response.status === 404) {
+                    showEmptyState();
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch repository contents: ${response.status}`);
+                }
+
+                const contents = await response.json();
+                
+                if (contents.length === 0) {
+                    showEmptyState();
+                    return;
+                }
+
+                allFiles = await processContents(contents);
+                updateStats();
+                renderDirectoryTree(allFiles);
+                hideLoading();
+                
+            } catch (error) {
+                console.error('Error loading repository:', error);
+                showEmptyState();
+                showToast('❌ Failed to load repository contents', 'error');
+            }
+        }
+
+        async function processContents(contents, path = '') {
+            const processedFiles = [];
+            
+            for (const item of contents) {
+                const processedItem = {
+                    name: item.name,
+                    type: item.type,
+                    size: item.size || 0,
+                    path: item.path,
+                    url: item.html_url,
+                    downloadUrl: item.download_url,
+                    rawUrl: `${RAW_BASE_URL}/${item.path}`,
+                    children: []
+                };
+
+                if (item.type === 'dir') {
+                    try {
+                        const dirResponse = await fetch(item.url);
+                        if (dirResponse.ok) {
+                            const dirContents = await dirResponse.json();
+                            processedItem.children = await processContents(dirContents, item.path);
+                        }
+                    } catch (error) {
+                        console.error(`Error loading directory ${item.path}:`, error);
+                    }
+                    stats.folders++;
+                } else {
+                    stats.files++;
+                    stats.totalSize += item.size || 0;
+                }
+
+                processedFiles.push(processedItem);
+            }
+
+            return processedFiles;
+        }
+
+        function renderDirectoryTree(files, container = null) {
+            if (!container) {
+                container = document.getElementById('directoryTree');
+                container.innerHTML = '';
+                container.style.display = 'block';
+            }
+
+            files.forEach(file => {
+                const fileElement = createFileElement(file);
+                container.appendChild(fileElement);
+            });
+        }
+
+        function createFileElement(file) {
+            const element = document.createElement('div');
+            element.className = `tree-item ${file.type}`;
+            
+            const header = document.createElement('div');
+            header.className = 'tree-item-header';
+            
+            const info = document.createElement('div');
+            info.className = 'tree-item-info';
+            
+            const icon = document.createElement('span');
+            icon.className = 'icon';
+            icon.textContent = file.type === 'dir' ? '📁' : getFileIcon(file.name);
+            
+            const name = document.createElement('span');
+            name.className = 'file-name';
+            name.textContent = file.name;
+            
+            info.appendChild(icon);
+            info.appendChild(name);
+            
+            if (file.type === 'file' && file.size > 0) {
+                const size = document.createElement('span');
+                size.className = 'file-size';
+                size.textContent = formatFileSize(file.size);
+                info.appendChild(size);
+            }
+            
+            const actions = document.createElement('div');
+            actions.className = 'actions';
+            
+            if (file.type === 'file') {
+                const viewBtn = document.createElement('a');
+                viewBtn.className = 'action-btn view-btn';
+                viewBtn.href = file.url;
+                viewBtn.target = '_blank';
+                viewBtn.innerHTML = '👁️ View';
+                
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'action-btn copy-btn';
+                copyBtn.innerHTML = '📋 Copy Link';
+                copyBtn.onclick = () => copyToClipboard(file.rawUrl);
+                
+                const downloadBtn = document.createElement('a');
+                downloadBtn.className = 'action-btn download-btn';
+                downloadBtn.href = file.downloadUrl;
+                downloadBtn.download = file.name;
+                downloadBtn.innerHTML = '⬇️ Download';
+                
+                actions.appendChild(viewBtn);
+                actions.appendChild(copyBtn);
+                actions.appendChild(downloadBtn);
+            }
+            
+            header.appendChild(info);
+            header.appendChild(actions);
+            element.appendChild(header);
+            
+            if (file.children && file.children.length > 0) {
+                const children = document.createElement('div');
+                children.className = 'children';
+                renderDirectoryTree(file.children, children);
+                element.appendChild(children);
+            }
+            
+            return element;
+        }
+
+        function getFileIcon(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            const iconMap = {
+                'pdf': '📄',
+                'jpg': '🖼️', 'jpeg': '🖼️', 'png': '🖼️', 'gif': '🖼️', 'svg': '🖼️',
+                'mp4': '🎥', 'avi': '🎥', 'mov': '🎥',
+                'mp3': '🎵', 'wav': '🎵', 'flac': '🎵',
+                'txt': '📝', 'md': '📝', 'doc': '📝', 'docx': '📝',
+                'html': '🌐', 'css': '🎨', 'js': '⚡', 'json': '📊',
+                'zip': '📦', 'rar': '📦', '7z': '📦',
+                'exe': '⚙️', 'msi': '⚙️'
+            };
+            return iconMap[ext] || '📄';
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+
+        function updateStats() {
+            document.getElementById('fileCount').textContent = stats.files;
+            document.getElementById('folderCount').textContent = stats.folders;
+            document.getElementById('totalSize').textContent = formatFileSize(stats.totalSize);
+            document.getElementById('stats').style.display = 'grid';
+        }
+
+        function filterFiles(searchTerm) {
+            if (!searchTerm) {
+                renderDirectoryTree(allFiles);
+                return;
+            }
+
+            const filteredFiles = filterFilesRecursive(allFiles, searchTerm);
+            renderDirectoryTree(filteredFiles);
+        }
+
+        function filterFilesRecursive(files, searchTerm) {
+            return files.filter(file => {
+                const matchesName = file.name.toLowerCase().includes(searchTerm);
+                if (file.type === 'dir') {
+                    const filteredChildren = filterFilesRecursive(file.children, searchTerm);
+                    if (filteredChildren.length > 0) {
+                        return { ...file, children: filteredChildren };
+                    }
+                    return matchesName;
+                }
+                return matchesName;
+            }).map(file => {
+                if (file.type === 'dir') {
+                    const filteredChildren = filterFilesRecursive(file.children, searchTerm);
+                    return { ...file, children: filteredChildren };
+                }
+                return file;
+            });
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('✅ Link copied to clipboard!');
+            }).catch(() => {
+                showToast('❌ Failed to copy link', 'error');
+            });
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('directoryTree').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('stats').style.display = 'none';
+            stats = { files: 0, folders: 0, totalSize: 0 };
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        function showEmptyState() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('directoryTree').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'block';
+            document.getElementById('stats').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
